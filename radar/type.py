@@ -44,6 +44,7 @@ class Car:
     def add_armor(self, armor):
         self.armors.append(armor)
 
+    # 计算机器人类型
     def calculate_type(self):
         if len(self.armors) == 0:
             return False
@@ -57,6 +58,7 @@ class Car:
         self.type = "red" if red_count > blue_count else "blue"
         return True
 
+    # 计算机器人ID
     def calculate_id(self):
         if len(self.armors) == 0:
             return False
