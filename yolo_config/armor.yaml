@@ -1,0 +1,19 @@
+path: E:\source\rm_datasets\RM2\datasets\armor_dataset_v4\
+train: images/train
+val: images/val
+test: images/val
+
+nc: 12
+names:
+    0: B1
+    1: B2
+    2: B3
+    3: B4
+    4: B5
+    5: B7
+    6: R1
+    7: R2
+    8: R3
+    9: R4
+    10: R5
+    11: R7

@@ -1,0 +1,10 @@
+path: E:\source\rm_datasets\RM2\datasets\car_dataset
+train: images/train
+val: images/val
+test: images/val
+
+
+nc: 1
+names:
+     0: 'car' 
+     
