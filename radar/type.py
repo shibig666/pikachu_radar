@@ -1,6 +1,7 @@
 import cv2
 
 
+# 转换为串口发送的类型
 def get_armor_type(armor_id):
     Ds = {
         "R1": 1,
@@ -22,20 +23,24 @@ def get_armor_type(armor_id):
         return 0
 
 
+# 装甲板类
 class Armor:
-    def __init__(self,id,color,box):
-        self.id = id
-        self.color = color
-        self.box = box
+    def __init__(self, id, color, box):
+        self.id = id  # 装甲板ID
+        self.color = color  # 装甲板颜色
+        self.box = box  # YOLO识别的装甲板框位置
 
+
+# 机器人类
 class Car:
     def __init__(self, box, image):
-        self.armors = []
-        self.image=image
-        self.box = box
-        self.id = "-1"
-        self.type = "unknown"
+        self.armors = []    # 内含装甲板
+        self.image = image  # ROI图像
+        self.box = box  # YOLO识别的机器人框位置
+        self.id = "-1"  # 机器人ID
+        self.type = "unknown"   # 机器人类型
 
+    # 添加装甲板
     def add_armor(self, armor):
         self.armors.append(armor)
 
@@ -55,7 +60,7 @@ class Car:
     def calculate_id(self):
         if len(self.armors) == 0:
             return False
-        ids={}
+        ids = {}
         for armor in self.armors:
             if armor.id in ids:
                 ids[armor.id] += 1

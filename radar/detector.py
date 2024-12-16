@@ -1,11 +1,11 @@
-from radar_utils import type
+from radar import type
 from ultralytics import YOLO
 import logging
 
 
 class Detector:
     def __init__(self, car_path, armor_path, map_path):
-        self.armor_classes = ["R1", "R2", "R3", "R4", "R5", "B1", "B2", "B3", "B4", "B5"]
+        self.armor_classes = ['B1', 'B2', 'B3', 'B4', 'B5', 'B7', 'R1', 'R2', 'R3', 'R4', 'R5', 'R7']
         self.car_detector = YOLO(car_path)
         self.armor_detector = YOLO(armor_path)
         self.cars = []
@@ -22,9 +22,6 @@ class Detector:
             for ar in result_armors:
                 armor_box = ar["box"]
                 armor_type = self.armor_classes[ar.Probs.top1]
-                # 避免识别的其他装甲板
-                if armor_type[0] != 'R' and armor_type[0] != 'B':
-                    continue
                 armor_color = 'red' if armor_type[0] == 'R' else 'blue'
                 armor = type.Armor(armor_type, armor_color, armor_box)
                 car.add_armor(armor)
