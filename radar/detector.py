@@ -6,9 +6,10 @@ import numpy as np
 
 # 装甲板检测器
 class Detector:
-    def __init__(self, car_path, armor_path, map_path,iou_threshold=0.8):
+    def __init__(self, car_path, armor_path, map_path,threshold=0.8):
         self.armor_classes = ['B1', 'B2', 'B3', 'B4', 'B5', 'B7', 'R1', 'R2', 'R3', 'R4', 'R5', 'R7']
-        self.iou_threshold = iou_threshold
+        # 阈值
+        self.threshold = threshold
         # 模型载入
         self.car_detector = YOLO(car_path)
         self.armor_detector = YOLO(armor_path)
