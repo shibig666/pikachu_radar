@@ -6,8 +6,9 @@ import numpy as np
 
 # 装甲板检测器
 class Detector:
-    def __init__(self, car_path, armor_path, map_path):
+    def __init__(self, car_path, armor_path, map_path,iou_threshold=0.8):
         self.armor_classes = ['B1', 'B2', 'B3', 'B4', 'B5', 'B7', 'R1', 'R2', 'R3', 'R4', 'R5', 'R7']
+        self.iou_threshold = iou_threshold
         # 模型载入
         self.car_detector = YOLO(car_path)
         self.armor_detector = YOLO(armor_path)
@@ -39,6 +40,11 @@ class Detector:
             self.cars.append(car_xyxy)
 
         logging.info(f"Detected {len(self.cars)} cars")
+
+    def plot_cars(self, image):
+        for car in self.cars:
+            image = car.plot(image)
+        return image
 
     def display(self):
         for car in self.cars:

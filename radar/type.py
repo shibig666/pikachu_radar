@@ -71,6 +71,12 @@ class Car:
         self.id = max(ids, key=ids.get)
         return True
 
+    def plot(self, image):
+        color=(0,255,0) if self.type=="red" else (255,0,0)
+        cv2.rectangle(image, (self.box[0], self.box[1]), (self.box[2], self.box[3]), color, 2)
+        for armor in self.armors:
+            cv2.rectangle(image, (armor.box[0], armor.box[1]), (armor.box[2], armor.box[3]), color, 2)
+
 
 class Map:
     def __init__(self, image_path):
