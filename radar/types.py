@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 
 
 # 转换为串口发送的类型
@@ -40,6 +41,7 @@ class Car:
         self.id = "-1"  # 机器人ID
         self.type = "unknown"  # 机器人类型
         self.center = ((box[0] + box[2]) // 2, (box[1] + box[3]) // 2)
+        self.xy_in_map = None
 
     # 添加装甲板
     def add_armor(self, armor):
@@ -90,27 +92,35 @@ class Car:
 
 class Map:
     def __init__(self, image_path):
-        self.src_image = None
         self.image = cv2.imread(image_path)
+        self.result_map_image=self.image.copy()
         self.shape = self.image.shape
-        self.cars = []
         self.src_points = []
         self.dst_points = []
+        self.M = None
+
+    def init_map(self, src_image):
+        self.select_src_point(src_image)
+        self.select_dst_point()
+        self.transform()
 
     def _resize_image(self, image, scale):
         return cv2.resize(image, (0, 0), fx=scale, fy=scale)
 
     def _mouse_callback(self, event, x, y, flags, param):
-        points, scale, image = param
+        points, scale, image, num = param
         if event == cv2.EVENT_LBUTTONDOWN:
             points.append((int(x // scale), int(y // scale)))
             cv2.circle(image, (x, y), 5, (0, 0, 255), -1)
+            cv2.putText(image, str(num[0]), (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+            num[0] += 1
 
     def _select_points(self, image, points, scale, window_name="Select Points"):
         points.clear()
+        num = [1]
         resized_image = self._resize_image(image, scale)
         cv2.imshow(window_name, resized_image)
-        param = (points, scale, resized_image)
+        param = (points, scale, resized_image, num)
         cv2.setMouseCallback(window_name, self._mouse_callback, param=param)
 
         while True:
@@ -133,11 +143,44 @@ class Map:
 
     def show_map(self):
         """显示地图"""
-        image=self.image.copy()
+        image = self.image.copy()
         for dst_point in self.dst_points:
             cv2.circle(image, dst_point, 5, (0, 0, 255), -1)
         cv2.imshow("Map", cv2.resize(image, (0, 0), fx=0.5, fy=0.5))
         cv2.waitKey(0)
         cv2.destroyAllWindows()
+
+    def show_transform_image(self, image):
+        """显示变换后的图像"""
+        if self.M is None:
+            print("Please transform first")
+            return
+        transformed_image = cv2.warpPerspective(image, self.M, (self.shape[1], self.shape[0]))
+        cv2.imshow("Transformed Image", cv2.resize(transformed_image, (0, 0), fx=0.5, fy=0.5))
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+    def transform(self):
+        src_points = np.float32(self.src_points)
+        dst_points = np.float32(self.dst_points)
+        self.M = cv2.getPerspectiveTransform(src_points, dst_points)
+
+    def calculate_car_in_map(self,car):
+        if self.M is None:
+            print("Please transform first")
+            return
+        car_xy = np.array(car.center).reshape(1, 1, 2).astype(np.float32)
+        xy_in_map = cv2.perspectiveTransform(car_xy, self.M)
+        car.xy_in_map = (int(xy_in_map[0][0][0]), int(xy_in_map[0][0][1]))
+
+    def plot_cars(self, cars):
+        image = self.image.copy()
+        for car in cars:
+            if car.xy_in_map is not None:
+                text=f"ID:{car.id} {car.type}"
+                cv2.circle(image, car.xy_in_map, 10, (0, 255, 0), -1)
+                cv2.putText(image, text, car.xy_in_map, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+        self.result_map_image=image
+        return image
 
 

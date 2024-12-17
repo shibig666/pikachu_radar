@@ -6,7 +6,7 @@ import numpy as np
 
 # 装甲板检测器
 class Detector:
-    def __init__(self, car_path, armor_path, map_path,
+    def __init__(self, car_path, armor_path, map_path,first_image,
                  car_iou=0.7, car_conf=0.25, car_half=False,
                  armor_iou=0.5, armor_conf=0.25, armor_half=False):
         self.armor_classes = ['B1', 'B2', 'B3', 'B4', 'B5', 'B7', 'R1', 'R2', 'R3', 'R4', 'R5', 'R7']
@@ -24,6 +24,7 @@ class Detector:
         self.cars = []
         # 载入地图
         self.map = types.Map(map_path)
+        self.map.init_map(first_image)
 
     # 检测
     def detect(self, image):
@@ -52,11 +53,13 @@ class Detector:
                 armor = types.Armor(armor_type, armor_color, armor_xyxy)
                 car.add_armor(armor)
 
+            self.map.calculate_car_in_map(car)
             car.calculate_type()
             car.calculate_id()
             self.cars.append(car)
 
         print(f"Detected {len(self.cars)} cars")
+        self.map.plot_cars(self.cars)
 
     def plot_cars(self, image):
         for car in self.cars:
@@ -66,3 +69,4 @@ class Detector:
     def display(self):
         for car in self.cars:
             print(f"Car ID: {car.id}, Type: {car.type},Armors:{len(car.armors)}")
+
