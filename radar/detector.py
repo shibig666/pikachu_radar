@@ -6,10 +6,17 @@ import numpy as np
 
 # 装甲板检测器
 class Detector:
-    def __init__(self, car_path, armor_path, map_path, threshold=0.8):
+    def __init__(self, car_path, armor_path, map_path,
+                 car_iou=0.7, car_conf=0.25, car_half=False,
+                 armor_iou=0.5, armor_conf=0.25, armor_half=False):
         self.armor_classes = ['B1', 'B2', 'B3', 'B4', 'B5', 'B7', 'R1', 'R2', 'R3', 'R4', 'R5', 'R7']
-        # 阈值
-        self.threshold = threshold
+        # 预测参数
+        self.car_iou = car_iou
+        self.car_conf = car_conf
+        self.car_half = car_half
+        self.armor_iou = armor_iou
+        self.armor_conf = armor_conf
+        self.armor_half = armor_half
         # 模型载入
         self.car_detector = YOLO(car_path)
         self.armor_detector = YOLO(armor_path)
@@ -23,13 +30,19 @@ class Detector:
         # 清空之前的识别结果
         self.cars = []
         # 识别机器人
-        result_cars = self.car_detector.predict(image)[0]
+        result_cars = self.car_detector.predict(image,
+                                                iou=self.car_iou,
+                                                conf=self.car_conf,
+                                                half=self.car_half)[0]
         cars_xyxy = result_cars.boxes.xyxy
         for i in range(len(cars_xyxy)):
             xyxy = list(map(int, cars_xyxy[i].cpu().tolist()))
             car = types.Car(xyxy, image[xyxy[1]:xyxy[3], xyxy[0]:xyxy[2]])
 
-            result_armors = self.armor_detector.predict(car.image)[0]
+            result_armors = self.armor_detector.predict(car.image,
+                                                        iou=self.armor_iou,
+                                                        conf=self.armor_conf,
+                                                        half=self.armor_half)[0]
             armors_xyxy = result_armors.boxes.xyxy
             armors_cls = result_armors.boxes.cls
             for armor_xyxy, armor_cls in zip(armors_xyxy, armors_cls):
