@@ -72,10 +72,18 @@ class Car:
         return True
 
     def plot(self, image):
-        color=(0,255,0) if self.type=="red" else (255,0,0)
+        if self.type == "red":
+            color = (0, 0, 255)
+        elif self.type == "blue":
+            color = (255, 0, 0)
+        else:
+            color = (0, 255, 0)
         cv2.rectangle(image, (self.box[0], self.box[1]), (self.box[2], self.box[3]), color, 2)
+        cv2.putText(image, f"ID:{self.id}", (self.box[0], self.box[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
         for armor in self.armors:
-            cv2.rectangle(image, (armor.box[0], armor.box[1]), (armor.box[2], armor.box[3]), color, 2)
+            cv2.rectangle(image, (self.box[0]+armor.box[0], self.box[1]+armor.box[1]),
+                          (self.box[0]+armor.box[2], self.box[1]+armor.box[3]), color, 2)
+        return image
 
 
 class Map:
