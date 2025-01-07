@@ -1,5 +1,7 @@
 from radar import types
+from radar.transform import Transformer
 from ultralytics import YOLO
+import json
 import logging
 import numpy as np
 
@@ -23,8 +25,9 @@ class Detector:
         # 识别到的机器人
         self.cars = []
         # 载入地图
-        self.map = types.Map(map_path)
-        self.map.init_map(first_image)
+        self.Transformer = Transformer(map_path,config_path="config/transform.json",
+                                       first_image=first_image)
+        self.result_map_image=None
 
     # 检测
     def detect(self, image):
@@ -53,13 +56,13 @@ class Detector:
                 armor = types.Armor(armor_type, armor_color, armor_xyxy)
                 car.add_armor(armor)
 
-            self.map.calculate_car_in_map(car)
+            self.Transformer.transform(car)
             car.calculate_type()
             car.calculate_id()
             self.cars.append(car)
 
         print(f"Detected {len(self.cars)} cars")
-        self.map.plot_cars(self.cars)
+        self.result_map_image=self.Transformer.plot_cars(self.cars)
 
     def plot_cars(self, image):
         for car in self.cars:

@@ -1,0 +1,71 @@
+{
+    "type": "transform",
+    "data": [
+        {
+            "rangex": [2050, 2520],
+            "rangey": [1111, 1650],
+            "transformx": -300,
+            "transformy": 0
+        },
+        {
+            "rangex": [2200, 2600],
+            "rangey": [750, 1111],
+            "transformx": -270,
+            "transformy": 0
+        },
+        {
+            "rangex": [3100, 4200],
+            "rangey": [1370, 2680],
+            "transformx": -400,
+            "transformy": -270
+        },
+        {
+            "rangex": [3950, 4568],
+            "rangey": [2250, 3000],
+            "transformx": -450,
+            "transformy": -245
+        },
+        {
+            "rangex": [4573, 5600],
+            "rangey": [740, 2000],
+            "transformx": 550,
+            "transformy": 0
+        },
+        {
+            "rangex": [1800, 2000],
+            "rangey": [200, 400],
+            "transformx": -300,
+            "transformy": -600
+        },
+        {
+            "rangex": [1400, 1600],
+            "rangey": [200, 400],
+            "transformx": -500,
+            "transformy": -600
+        },
+        {
+            "rangex": [1000, 1200],
+            "rangey": [200, 400],
+            "transformx": -700,
+            "transformy": -600
+        },
+        {
+            "rangex": [600, 800],
+            "rangey": [200, 400],
+            "transformx": -900,
+            "transformy": -600
+        },
+        {
+            "rangex": [200, 400],
+            "rangey": [200, 400],
+            "transformx": -1100,
+            "transformy": -600
+        },
+        {
+            "rangex": [200, 400],
+            "rangey": [600, 800],
+            "transformx": -1100,
+            "transformy": -400
+        }
+    ]
+}

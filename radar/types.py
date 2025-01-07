@@ -40,8 +40,8 @@ class Car:
         self.box = box  # YOLO识别的机器人框位置
         self.id = "-1"  # 机器人ID
         self.type = "unknown"  # 机器人类型
-        self.center = ((box[0] + box[2]) // 2, (box[1] + box[3]) // 2)
-        self.xy_in_map = None
+        self.center = ((box[0] + box[2]) // 2, box[3])  # 注意选中下点
+        self.xy_in_map = None   # 机器人在地图中的坐标
 
     # 添加装甲板
     def add_armor(self, armor):
@@ -74,6 +74,7 @@ class Car:
         self.id = max(ids, key=ids.get)
         return True
 
+    # 框出机器人
     def plot(self, image):
         if self.type == "red":
             color = (0, 0, 255)
@@ -92,17 +93,16 @@ class Car:
 
 class Map:
     def __init__(self, image_path):
-        self.image = cv2.imread(image_path)
-        self.result_map_image=self.image.copy()
-        self.shape = self.image.shape
+        self.map_image = cv2.imread(image_path)
+        self.shape = self.map_image.shape
         self.src_points = []
         self.dst_points = []
         self.M = None
 
-    def init_map(self, src_image):
-        self.select_src_point(src_image)
-        self.select_dst_point()
-        self.transform()
+    # >>>>>>>>>>>选取点<<<<<<<<<<
+    def init_map(self, src_image, scale=0.5):
+        self.select_src_point(src_image, scale)
+        self.select_dst_point(scale)
 
     def _resize_image(self, image, scale):
         return cv2.resize(image, (0, 0), fx=scale, fy=scale)
@@ -139,48 +139,32 @@ class Map:
         self._select_points(src_image, self.src_points, scale, window_name="Select Source Points")
 
     def select_dst_point(self, scale=0.5):
-        self._select_points(self.image, self.dst_points, scale, window_name="Select Destination Points")
+        self._select_points(self.map_image, self.dst_points, scale, window_name="Select Destination Points")
+    # !>>>>>>>>>>>选取点<<<<<<<<<<!
 
-    def show_map(self):
+    def show_map(self,scale=0.5):
         """显示地图"""
-        image = self.image.copy()
+        image = self.map_image.copy()
         for dst_point in self.dst_points:
             cv2.circle(image, dst_point, 5, (0, 0, 255), -1)
-        cv2.imshow("Map", cv2.resize(image, (0, 0), fx=0.5, fy=0.5))
+        cv2.imshow("Map", cv2.resize(image, (0, 0), fx=scale, fy=scale))
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-    def show_transform_image(self, image):
-        """显示变换后的图像"""
-        if self.M is None:
-            print("Please transform first")
-            return
-        transformed_image = cv2.warpPerspective(image, self.M, (self.shape[1], self.shape[0]))
-        cv2.imshow("Transformed Image", cv2.resize(transformed_image, (0, 0), fx=0.5, fy=0.5))
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-
-    def transform(self):
-        src_points = np.float32(self.src_points)
-        dst_points = np.float32(self.dst_points)
-        self.M = cv2.getPerspectiveTransform(src_points, dst_points)
-
-    def calculate_car_in_map(self,car):
-        if self.M is None:
-            print("Please transform first")
-            return
-        car_xy = np.array(car.center).reshape(1, 1, 2).astype(np.float32)
-        xy_in_map = cv2.perspectiveTransform(car_xy, self.M)
-        car.xy_in_map = (int(xy_in_map[0][0][0]), int(xy_in_map[0][0][1]))
-
+    # 在地图中标出机器人
     def plot_cars(self, cars):
-        image = self.image.copy()
+        image = self.map_image.copy()
         for car in cars:
             if car.xy_in_map is not None:
                 text=f"ID:{car.id} {car.type}"
-                cv2.circle(image, car.xy_in_map, 10, (0, 255, 0), -1)
-                cv2.putText(image, text, car.xy_in_map, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-        self.result_map_image=image
+                cv2.circle(image, car.xy_in_map, 20, (0, 255, 0), -1)
+                if car.type == "red":
+                    color = (0, 0, 255)
+                elif car.type == "blue":
+                    color = (255, 0, 0)
+                else:
+                    color = (0, 255, 0)
+                cv2.putText(image, text, car.xy_in_map, cv2.FONT_HERSHEY_SIMPLEX, 1, color, 3)
         return image
 
 
