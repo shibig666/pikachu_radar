@@ -1,6 +1,6 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
-from PyQt6.QtGui import QImage, QPixmap
+from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QTableWidgetItem, QTableWidget
+from PyQt6.QtGui import QImage, QPixmap, QStandardItemModel, QStandardItem
 from PyQt6.QtCore import QTimer
 from ui.RadarChoiceWidget import *
 from ui.RadarMainWindow import *
@@ -46,6 +46,8 @@ class MainWindow(QMainWindow, Ui_RadarMainWindow):
         self.first_image = None
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_frame)
+        self.init_table()
+
 
     def open_video(self, video_file):
         cap = cv2.VideoCapture(video_file)
@@ -74,6 +76,22 @@ class MainWindow(QMainWindow, Ui_RadarMainWindow):
                                  "weights/armor.pt",
                                  "interface/map.png",
                                  self.first_image)
+
+    def init_table(self):
+        # 创建标准项模型
+        self.model = QStandardItemModel(self)
+        self.model.setHorizontalHeaderLabels(["ID", "Type", "Center X", "Center Y", "Map X", "Map Y"])
+
+        # 设置表格模型
+        self.CarTableView.setModel(self.model)
+        self.CarTableView.verticalHeader().setVisible(False)  # 隐藏行号
+        # 设置每列的固定宽度
+        self.CarTableView.setColumnWidth(0, 100)  # 设置ID列宽度为100
+        self.CarTableView.setColumnWidth(1, 150)  # 设置Type列宽度为150
+        self.CarTableView.setColumnWidth(2, 120)  # 设置Center X列宽度为120
+        self.CarTableView.setColumnWidth(3, 120)  # 设置Center Y列宽度为120
+        self.CarTableView.setColumnWidth(4, 150)  # 设置Map X列宽度为150
+        self.CarTableView.setColumnWidth(5, 150)  # 设置Map Y列宽度为150
 
     def start_video(self):
         self.cap = self.open_video(self.video_file)
@@ -111,14 +129,20 @@ class MainWindow(QMainWindow, Ui_RadarMainWindow):
         # 更新显示内容
         self.MapLabel.setPixmap(QPixmap.fromImage(result_map_qimg))
         self.VideoLabel.setPixmap(QPixmap.fromImage(result_img_qimg))
+        self.update_table()
 
-        # 获取当前帧数（可选，用于调试或显示）
-        current_frame = int(self.cap.get(cv2.CAP_PROP_POS_FRAMES))
-        print(f"当前帧数: {current_frame}")
-
-
-
-
+    def update_table(self):
+        self.model.removeRows(0, self.model.rowCount())
+        cars = sorted(self.detector.cars, key=lambda x: x.id)
+        for i, car in enumerate(cars):
+            self.model.appendRow([
+                QStandardItem(str(car.id)),
+                QStandardItem(car.type),
+                QStandardItem(str(car.center[0])),
+                QStandardItem(str(car.center[1])),
+                QStandardItem(str(car.xy_in_map[0])),
+                QStandardItem(str(car.xy_in_map[1])),
+            ])
 
 
 if __name__ == "__main__":
