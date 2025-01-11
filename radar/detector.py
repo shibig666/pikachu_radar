@@ -8,7 +8,7 @@ import numpy as np
 
 # 装甲板检测器
 class Detector:
-    def __init__(self, car_path, armor_path, map_path,first_image,
+    def __init__(self, car_path, armor_path, map_path, first_image,
                  car_iou=0.7, car_conf=0.25, car_half=False,
                  armor_iou=0.5, armor_conf=0.25, armor_half=False):
         self.armor_classes = ['B1', 'B2', 'B3', 'B4', 'B5', 'B7', 'R1', 'R2', 'R3', 'R4', 'R5', 'R7']
@@ -25,9 +25,9 @@ class Detector:
         # 识别到的机器人
         self.cars = []
         # 载入地图
-        self.Transformer = Transformer(map_path,config_path="config/transform.json",
+        self.Transformer = Transformer(map_path, config_path="config/transform.json",
                                        first_image=first_image)
-        self.result_map_image=None
+        self.result_map_image = None
 
     # 检测
     def detect(self, image):
@@ -61,8 +61,9 @@ class Detector:
             car.calculate_id()
             self.cars.append(car)
 
-        print(f"Detected {len(self.cars)} cars")
-        self.result_map_image=self.Transformer.plot_cars(self.cars)
+        # print(f"Detected {len(self.cars)} cars")
+        self.result_map_image = self.Transformer.plot_cars(self.cars)
+        return self.result_map_image
 
     def plot_cars(self, image):
         for car in self.cars:
@@ -72,4 +73,3 @@ class Detector:
     def display(self):
         for car in self.cars:
             print(f"Car ID: {car.id}, Type: {car.type},Armors:{len(car.armors)}")
-
