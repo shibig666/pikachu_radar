@@ -94,6 +94,8 @@ class SerialPort:
                 for ID in self.enemy_team_ids:
                     if ID not in self.referee_info.info_dict:
                         self.referee_info.info_dict[ID] = (0, 0)
+                    if self.referee_info.info_dict[ID][0] < 0 or self.referee_info.info_dict[ID][1] < 0:
+                        self.referee_info.info_dict[ID] = (0, 0)
                     message += struct.pack(
                         "<HH",
                         self.referee_info.info_dict[ID][0],
