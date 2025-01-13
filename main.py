@@ -37,7 +37,7 @@ class ChoiceWidget(QMainWindow, Ui_RadarChoiceWidget):
         QMessageBox.information(self, "提示", "摄像头功能暂未开放")
 
 
-class MainWindow(QMainWindow, Ui_RadarMainWindow):
+class MainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
