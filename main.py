@@ -6,8 +6,8 @@ from ui.RadarChoiceWidget import *
 from ui.RadarPlayerMainWindow import *
 from radar.detector import Detector
 import cv2
+import time
 import threading
-
 
 class ChoiceWidget(QMainWindow, Ui_RadarChoiceWidget):
     def __init__(self, parent=None):
@@ -28,8 +28,6 @@ class ChoiceWidget(QMainWindow, Ui_RadarChoiceWidget):
             main_window.show()
             main_window.init(selected_file, use_tensorrt)
             main_window.start_video()
-
-
 
     def select_camera(self):
         QMessageBox.information(self, "提示", "摄像头功能暂未开放")
@@ -54,6 +52,7 @@ class MainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
 
         # Connect slider value change to video position
         self.horizontalSlider.valueChanged.connect(self.update_video_position)
+        self.time = 0
 
     def open_video(self, video_file):
         cap = cv2.VideoCapture(video_file)
@@ -66,8 +65,8 @@ class MainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
             return False
         return cap
 
-    def init(self, video_file,use_tensorrt):
-        self.use_tensorrt=use_tensorrt
+    def init(self, video_file, use_tensorrt):
+        self.use_tensorrt = use_tensorrt
         self.video_file = video_file
         self.cap = self.open_video(video_file)
         if not self.cap:
@@ -104,12 +103,11 @@ class MainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
     def start_video(self):
         if self.cap is None:
             return
-        self.timer.start(1000 / self.fps)
+        self.timer.start(int(1000 / self.fps))
 
     def update_frame(self):
         # if self.paused:
         #     return
-
         ret, frame = self.cap.read()
         if not ret:
             self.timer.stop()
@@ -132,6 +130,9 @@ class MainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
         result_img_qimg = QImage(result_img.data, result_img.shape[1], result_img.shape[0], QImage.Format.Format_RGB888)
 
         # 更新显示内容
+        fps = int(1 / (time.time() - self.time))
+        self.time = time.time()
+        self.fpsLabel.setText(f"FPS: {fps}")
         self.MapLabel.setPixmap(QPixmap.fromImage(result_map_qimg))
         self.VideoLabel.setPixmap(QPixmap.fromImage(result_img_qimg))
         self.update_table()

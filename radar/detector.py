@@ -46,7 +46,8 @@ class Detector:
                                                 iou=self.car_iou,
                                                 conf=self.car_conf,
                                                 half=self.car_half,
-                                                device=self.device)[0]
+                                                device=self.device,
+                                                verbose=False)[0]
         cars_xyxy = result_cars.boxes.xyxy
         for i in range(len(cars_xyxy)):
             xyxy = list(map(int, cars_xyxy[i].cpu().tolist()))
@@ -56,7 +57,8 @@ class Detector:
                                                         iou=self.armor_iou,
                                                         conf=self.armor_conf,
                                                         half=self.armor_half,
-                                                        device=self.device)[0]
+                                                        device=self.device,
+                                                        verbose=False)[0]
             armors_xyxy = result_armors.boxes.xyxy
             armors_cls = result_armors.boxes.cls
             for armor_xyxy, armor_cls in zip(armors_xyxy, armors_cls):

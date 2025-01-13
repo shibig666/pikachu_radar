@@ -102,6 +102,19 @@
      <string>暂停</string>
     </property>
    </widget>
+   <widget class="QLabel" name="fpsLabel">
+    <property name="geometry">
+     <rect>
+      <x>1050</x>
+      <y>90</y>
+      <width>121</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
