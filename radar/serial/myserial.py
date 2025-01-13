@@ -4,7 +4,6 @@ import serial
 from radar.serial.crc import *
 import struct
 import serial.tools.list_ports
-import multiprocessing as mp
 import threading as td
 import queue as qu
 import binascii

@@ -3,10 +3,6 @@ from radar.transform import Transformer
 from ultralytics import YOLO
 import torch
 import os
-import json
-import logging
-import numpy as np
-import multiprocessing as mp
 
 
 # 装甲板检测器

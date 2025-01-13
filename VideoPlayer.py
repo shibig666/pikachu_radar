@@ -29,11 +29,11 @@ class PlayerMainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
         self.detector = None  # 检测器对象
         self.first_image = None  # 第一帧图像
         self.timer = QTimer()  # 播放视频定时器
-        self.timer.timeout.connect(self.update_frame)   
-        self.console_timer = QTimer()   # 串口终端定时器
+        self.timer.timeout.connect(self.update_frame)
+        self.console_timer = QTimer()  # 串口终端定时器
         self.console_timer.timeout.connect(self.update_console)
-        self.init_table()   # 初始化表格
-        self.paused = False # 是否暂停
+        self.init_table()  # 初始化表格
+        self.paused = False  # 是否暂停
         self.NextButton.clicked.connect(self.next_frame)
         self.PauseButton.clicked.connect(self.toggle_pause)
         self.horizontalSlider.valueChanged.connect(self.update_video_position)
