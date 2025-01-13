@@ -8,29 +8,14 @@ import multiprocessing as mp
 import threading as td
 import queue as qu
 
-# 定义一些常量
-team = "R"  # 我方队伍
 SOF = 0xA5
-base_ids = {
-    "B": [1, 2, 3, 4, 5, 7],
-    "R": [101, 102, 103, 104, 105, 107],
-}
-
-
-enemy_team_ids = base_ids.get(team)
-if team == "B":
-    my_id = 109
-    plane_id = 106
-else:
-    my_id = 9
-    plane_id = 6
-queue_from_yolo = mp.Queue()
+queue_from_yolo = mp.Queue()# 用于接受外部yolo进程的数据
 update_txdata_flag = mp.Event()
 
 
 # 串口通信类
 class SerialPort:
-    def __init__(self, COM):
+    def __init__(self, COM,team):
         # 初始化串口
         self.ser = serial.Serial(
             port=COM,
@@ -45,7 +30,17 @@ class SerialPort:
             print("串口打开成功。")
         else:
             print("串口打开失败。")
-
+        self.base_ids = {
+            "B": [1, 2, 3, 4, 5, 7],
+            "R": [101, 102, 103, 104, 105, 107],
+        }
+        self.enemy_team_ids = self.base_ids.get(team)
+        if team == "B":
+            self.my_id = 109
+            self.plane_id = 106
+        else:
+            self.my_id = 9
+            self.plane_id = 6
         class RefereeInfo:
             def __init__(self) -> None:
                 self.double_flag = 0
@@ -53,7 +48,7 @@ class SerialPort:
                 self.mark_data = {}
                 self.double_state = 0
                 self.info_dict = {}
-                for id in enemy_team_ids:
+                for id in self.enemy_team_ids:
                     info = {"position": (0, 0)}
                     self.info_dict[id] = info
                     self.mark_data[id] = 0
@@ -86,7 +81,7 @@ class SerialPort:
                 message = bytes([SOF, 24, 0x00, self.SEQ])
                 message += append_crc8(message[:4])
                 message += bytes([0x05, 0x03])
-                for id in enemy_team_ids:
+                for id in self.enemy_team_ids:
                     message += struct.pack(
                         "<HH",
                         self.referee_info.info_dict[id]["position"][0],
@@ -108,7 +103,7 @@ class SerialPort:
                 message = bytes([SOF, 0x07, 0x00, self.SEQ])
                 message += append_crc8(message[:4])
                 message += bytes(
-                    [0x01, 0x03, 0x21, 0x01, my_id >> 8, my_id & 0xFF, 0x80, 0x80]
+                    [0x01, 0x03, 0x21, 0x01, self.my_id >> 8, self.my_id & 0xFF, 0x80, 0x80]
                 )
                 if self.referee_info.double_state != 1 and self.referee_info.count > 0:
                     self.send_count += 1
@@ -135,10 +130,10 @@ class SerialPort:
                     [
                         0x01,
                         0x03,
-                        my_id >> 8,
-                        my_id & 0xFF,
-                        plane_id >> 8,
-                        plane_id & 0xFF,
+                        self.my_id >> 8,
+                        self.my_id & 0xFF,
+                        self.plane_id >> 8,
+                        self.plane_id & 0xFF,
                         self.referee_info.count,
                         self.referee_info.double_state,
                     ]
@@ -156,7 +151,7 @@ class SerialPort:
             if not queue_from_yolo.empty():
                 data = queue_from_yolo.get()
                 for i in range(len(data["ID"])):
-                    if data["ID"][i] in enemy_team_ids:
+                    if data["ID"][i] in self.enemy_team_ids:
                         self.referee_info.info_dict[data["ID"][i]]["position"] = data[
                             "POS"
                         ][i]
@@ -194,7 +189,7 @@ class SerialPort:
 
             if cmd_id == 0x020C:
                 for i in range(6):
-                    self.referee_info.mark_data[enemy_team_ids[i]] = data[7] & (
+                    self.referee_info.mark_data[self.enemy_team_ids[i]] = data[7] & (
                         0b1 << i
                     )
                 print("mark data: ", self.referee_info.mark_data)
@@ -252,10 +247,8 @@ def print_bytes(data):
     print("Bytes: " + hex_str_with_spaces)
 
 
-# 实例化串口对象
-sp = SerialPort(list_available_ports())
-
 
 if __name__ == "__main__":
+    sp = SerialPort(list_available_ports(),"B")
     serial_process = mp.Process(target=sp.serial_task())
     serial_process.start()

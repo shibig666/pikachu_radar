@@ -8,7 +8,10 @@ from radar.detector import Detector
 import cv2
 import time
 import threading
-
+# import multiprocessing as mp
+# rom myserial import SerialPort
+# 实例化串口对象
+# sp = SerialPort(list_available_ports())
 class ChoiceWidget(QMainWindow, Ui_RadarChoiceWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
