@@ -18,10 +18,7 @@ def get_armor_type(armor_id):
         "B5": 105,
         "B7": 107,
     }
-    if armor_id in Ds:
-        return Ds[armor_id]
-    else:
-        return 0
+    return Ds.get(armor_id, 0)
 
 
 # 装甲板类
@@ -41,7 +38,7 @@ class Car:
         self.id = "-1"  # 机器人ID
         self.type = "unknown"  # 机器人类型
         self.center = ((box[0] + box[2]) // 2, box[3])  # 注意选中下点
-        self.xy_in_map = None   # 机器人在地图中的坐标
+        self.xy_in_map = None  # 机器人在地图中的坐标
 
     # 添加装甲板
     def add_armor(self, armor):
@@ -89,6 +86,14 @@ class Car:
             cv2.rectangle(image, (self.box[0] + armor.box[0], self.box[1] + armor.box[1]),
                           (self.box[0] + armor.box[2], self.box[1] + armor.box[3]), color, 2)
         return image
+
+    def get_info(self):
+        if self.xy_in_map is None:
+            return {"ID": get_armor_type(self.id)
+                , "position": (0, 0)}
+        else:
+            return {"ID": get_armor_type(self.id)
+                , "position": (int(self.xy_in_map[0]), int(self.xy_in_map[1]))}
 
 
 class Map:
@@ -140,9 +145,10 @@ class Map:
 
     def select_dst_point(self, scale=0.5):
         self._select_points(self.map_image, self.dst_points, scale, window_name="Select Destination Points")
+
     # !>>>>>>>>>>>选取点<<<<<<<<<<!
 
-    def show_map(self,scale=0.5):
+    def show_map(self, scale=0.5):
         """显示地图"""
         image = self.map_image.copy()
         for dst_point in self.dst_points:
@@ -156,7 +162,7 @@ class Map:
         image = self.map_image.copy()
         for car in cars:
             if car.xy_in_map is not None:
-                text=f"{car.id}" if car.id != "-1" else ""
+                text = f"{car.id}" if car.id != "-1" else ""
                 if car.type == "red":
                     color = (0, 0, 255)
                 elif car.type == "blue":
@@ -166,5 +172,3 @@ class Map:
                 cv2.circle(image, car.xy_in_map, 20, color, -1)
                 cv2.putText(image, text, car.xy_in_map, cv2.FONT_HERSHEY_SIMPLEX, 5, color, 8)
         return image
-
-

@@ -6,6 +6,7 @@ import os
 import json
 import logging
 import numpy as np
+import multiprocessing as mp
 
 
 # 装甲板检测器
@@ -23,6 +24,7 @@ class Detector:
         self.armor_iou = armor_iou
         self.armor_conf = armor_conf
         self.armor_half = armor_half
+        self.data_queue = None
         # 模型载入
         if tensorRT:
             self.car_detector = YOLO(os.path.join(model_path, 'car.engine'))
@@ -76,6 +78,7 @@ class Detector:
 
         # print(f"Detected {len(self.cars)} cars")
         self.result_map_image = self.Transformer.plot_cars(self.cars)
+
         return self.result_map_image
 
     def plot_cars(self, image):

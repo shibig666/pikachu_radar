@@ -7,9 +7,11 @@ from ui.RadarPlayerMainWindow import *
 from radar.detector import Detector
 import cv2
 import time
+import multiprocessing as mp
 
-# import multiprocessing as mp
-# from myserial import SerialPort
+from radar.serial.myserial import SerialPort
+
+
 # 实例化串口对象
 # sp = SerialPort(list_available_ports())
 
@@ -29,17 +31,17 @@ class ChoiceWidget(QMainWindow, Ui_RadarChoiceWidget):
         if file_dialog.exec():
             selected_file = file_dialog.selectedFiles()[0]
             use_tensorrt = self.checkBoxTensorrt.isChecked()
-            use_serial = self.checkBoxSerial.isChecked()  # 串口功能暂未开放
+            use_serial = self.checkBoxSerial.isChecked()
             self.close()
-            main_window.show()
-            main_window.init(selected_file, use_tensorrt)
-            main_window.start_video()
+            player_main_window.show()
+            player_main_window.init(selected_file, use_tensorrt, use_serial)
+            player_main_window.start_video()
 
     def select_camera(self):
         QMessageBox.information(self, "提示", "摄像头功能暂未开放")
 
 
-class MainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
+class PlayerMainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
@@ -48,6 +50,8 @@ class MainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
         self.first_image = None
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_frame)
+        self.console_timer = QTimer()
+        self.console_timer.timeout.connect(self.update_console)
         self.init_table()
         self.paused = False
         self.NextButton.clicked.connect(self.next_frame)
@@ -66,10 +70,13 @@ class MainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
             return False
         return cap
 
-    def init(self, video_file, use_tensorrt):
+    def init(self, video_file, use_tensorrt, use_serial):
         self.use_tensorrt = use_tensorrt
+        self.use_serial = use_serial
         self.video_file = video_file
         self.cap = self.open_video(video_file)
+        self.queues = [mp.Queue() for _ in range(2)]
+        self.event = mp.Event()
         if not self.cap:
             self.close()
             return
@@ -82,6 +89,11 @@ class MainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
             QMessageBox.warning(self, "警告", "视频文件读取失败")
             self.close()
             return
+        if use_serial:
+            self.console_timer.start(100)
+            sp = SerialPort("COM1", "R", self.queues, self.event)
+            serial_process = mp.Process(target=sp.serial_task())
+            serial_process.start()
         self.first_image = frame
         self.detector = Detector("weights", "interface/map.png", self.first_image, tensorRT=self.use_tensorrt)
 
@@ -106,9 +118,12 @@ class MainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
             return
         self.timer.start(int(1000 / self.fps))
 
+    def update_console(self):
+        if not self.queues[1].empty():
+            byte_data = self.queues[1].get()
+            self.ConsoleText.appendPlainText(byte_data)
+
     def update_frame(self):
-        # if self.paused:
-        #     return
         ret, frame = self.cap.read()
         if not ret:
             self.timer.stop()
@@ -137,6 +152,19 @@ class MainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
         self.MapLabel.setPixmap(QPixmap.fromImage(result_map_qimg))
         self.VideoLabel.setPixmap(QPixmap.fromImage(result_img_qimg))
         self.update_table()
+
+        # 串口发送
+        if self.use_serial:
+            send_data=[]
+            for car in self.detector.cars:
+                if car.id == "-1":
+                    continue
+                send_data.append({
+                    "ID": car.id,
+                    "position": car.xy_in_map,
+                })
+            self.queues[0].put(send_data)
+            self.event.set()
 
     def update_table(self):
         self.model.removeRows(0, self.model.rowCount())
@@ -182,6 +210,6 @@ class MainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     choice_widget = ChoiceWidget()
-    main_window = MainWindow()
+    player_main_window = PlayerMainWindow()
     choice_widget.show()
     sys.exit(app.exec())
