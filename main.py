@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox,
 from PyQt6.QtGui import QImage, QPixmap, QStandardItemModel, QStandardItem
 from PyQt6.QtCore import QTimer
 from ui.RadarChoiceWidget import *
-from ui.RadarMainWindow import *
+from ui.RadarPlayerMainWindow import *
 from radar.detector import Detector
 import cv2
 import threading
@@ -48,6 +48,14 @@ class MainWindow(QMainWindow, Ui_RadarMainWindow):
         self.timer.timeout.connect(self.update_frame)
         self.init_table()
 
+        self.paused = False  # Track whether the video is paused
+
+        # Connect button actions
+        self.NextButton.clicked.connect(self.next_frame)
+        self.PauseButton.clicked.connect(self.toggle_pause)
+
+        # Connect slider value change to video position
+        self.horizontalSlider.valueChanged.connect(self.update_video_position)
 
     def open_video(self, video_file):
         cap = cv2.VideoCapture(video_file)
@@ -62,20 +70,21 @@ class MainWindow(QMainWindow, Ui_RadarMainWindow):
 
     def init(self, video_file):
         self.video_file = video_file
-        cap = self.open_video(video_file)
-        if not cap:
+        self.cap = self.open_video(video_file)
+        if not self.cap:
             self.close()
-        ret, frame = cap.read()
+            return
+        self.fps = self.cap.get(cv2.CAP_PROP_FPS)
+        self.frame_count = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.current_frame = 0
+        self.first_image = None
+        ret, frame = self.cap.read()
         if not ret:
             QMessageBox.warning(self, "警告", "视频文件读取失败")
             self.close()
             return
         self.first_image = frame
-        cap.release()
-        self.detector = Detector("weights/car.pt",
-                                 "weights/armor.pt",
-                                 "interface/map.png",
-                                 self.first_image)
+        self.detector = Detector("weights/car.pt", "weights/armor.pt", "interface/map.png", self.first_image)
 
     def init_table(self):
         # 创建标准项模型
@@ -86,33 +95,30 @@ class MainWindow(QMainWindow, Ui_RadarMainWindow):
         self.CarTableView.setModel(self.model)
         self.CarTableView.verticalHeader().setVisible(False)  # 隐藏行号
         # 设置每列的固定宽度
-        self.CarTableView.setColumnWidth(0, 100)  # 设置ID列宽度为100
-        self.CarTableView.setColumnWidth(1, 150)  # 设置Type列宽度为150
-        self.CarTableView.setColumnWidth(2, 120)  # 设置Center X列宽度为120
-        self.CarTableView.setColumnWidth(3, 120)  # 设置Center Y列宽度为120
-        self.CarTableView.setColumnWidth(4, 150)  # 设置Map X列宽度为150
-        self.CarTableView.setColumnWidth(5, 150)  # 设置Map Y列宽度为150
+        self.CarTableView.setColumnWidth(0, 100)
+        self.CarTableView.setColumnWidth(1, 150)
+        self.CarTableView.setColumnWidth(2, 120)
+        self.CarTableView.setColumnWidth(3, 120)
+        self.CarTableView.setColumnWidth(4, 150)
+        self.CarTableView.setColumnWidth(5, 150)
 
     def start_video(self):
-        self.cap = self.open_video(self.video_file)
-        if not self.cap:
-            self.close()
+        if self.cap is None:
             return
-        fps = self.cap.get(cv2.CAP_PROP_FPS)
-        if fps == 0:
-            print("无法获取视频帧率")
-            self.close()
-            return
-        frame_interval = int(1000 / fps)
-        self.timer.start(frame_interval)
+        self.timer.start(1000 / self.fps)
 
     def update_frame(self):
-        # 读取下一帧
+        # if self.paused:
+        #     return
+
         ret, frame = self.cap.read()
         if not ret:
             self.timer.stop()
             self.cap.release()
             return
+
+        self.current_frame += 1
+        self.horizontalSlider.setValue(int(self.current_frame / self.frame_count * 100))
 
         # 处理检测和绘制
         result_map = cv2.cvtColor(self.detector.detect(frame), cv2.COLOR_RGB2BGR)
@@ -143,6 +149,33 @@ class MainWindow(QMainWindow, Ui_RadarMainWindow):
                 QStandardItem(str(car.xy_in_map[0])),
                 QStandardItem(str(car.xy_in_map[1])),
             ])
+
+    def next_frame(self):
+        if self.cap is None:
+            return
+        self.current_frame += 1
+        if self.current_frame >= self.frame_count:
+            self.current_frame = 0
+        self.cap.set(cv2.CAP_PROP_POS_FRAMES, self.current_frame)
+        self.update_frame()
+
+    def toggle_pause(self):
+        if self.paused:
+            self.paused = False
+            self.PauseButton.setText("暂停")
+            self.timer.start(1000 / self.fps)
+        else:
+            self.paused = True
+            self.PauseButton.setText("播放")
+            self.timer.stop()
+
+    def update_video_position(self):
+        if self.cap is None:
+            return
+        position = self.horizontalSlider.value()
+        self.current_frame = int(position * self.frame_count / 100)
+        self.cap.set(cv2.CAP_PROP_POS_FRAMES, self.current_frame)
+        self.update_frame()
 
 
 if __name__ == "__main__":
