@@ -43,8 +43,8 @@ class SerialPort:
                 send_console("串口打开失败。", self.queues[1])
                 time.sleep(1)
         self.base_ids = {
-            "B": [1, 2, 3, 4, 5, 7],
-            "R": [101, 102, 103, 104, 105, 107],
+            "R": [1, 2, 3, 4, 5, 7],
+            "B": [101, 102, 103, 104, 105, 107],
         }
         self.enemy_team_ids = self.base_ids.get(team)
         if team == "B":
@@ -61,7 +61,7 @@ class SerialPort:
                 self.mark_data = {}
                 self.double_state = 0
                 self.info_dict = {}
-                self.enemy_team_ids= None
+                self.enemy_team_ids = None
 
         self.SEQ = 0x0  # 序列号
         self.send_count = 0x0  # 发送双倍易伤计数
@@ -91,23 +91,25 @@ class SerialPort:
                 message = bytes([self.SOF, 24, 0x00, self.SEQ])
                 message += append_crc8(message[:4])
                 message += bytes([0x05, 0x03])
-                for id in self.enemy_team_ids:
-                    if id not in self.referee_info.info_dict:
-                        self.referee_info.info_dict[id] = (0,0)
-                    # print(str(id)+str(self.referee_info.info_dict[id]))
+                for ID in self.enemy_team_ids:
+                    if ID not in self.referee_info.info_dict:
+                        self.referee_info.info_dict[ID] = (0, 0)
                     message += struct.pack(
                         "<HH",
-                        self.referee_info.info_dict[id][0],
-                        self.referee_info.info_dict[id][1],
+                        self.referee_info.info_dict[ID][0],
+                        self.referee_info.info_dict[ID][1],
                     )
-                    self.referee_info.info_dict[id] = (0, 0)
+
+                # send_console(str(self.referee_info.info_dict), self.queues[1])
+                for ID in self.enemy_team_ids:
+                    self.referee_info.info_dict[ID] = (0, 0)
                 message += append_crc16(message)
                 self.SEQ += 1
                 if self.SEQ > 0xFF:
                     self.SEQ = 0
                 self.ser.write(message)
                 print_bytes(message, self.queues[1])
-                time.sleep(0.2)  #  发送频率为5Hz
+                time.sleep(0.2)  # 发送频率为5Hz
 
     def tx_double_thread(self):
         while 1:
@@ -165,11 +167,8 @@ class SerialPort:
             self.update_txdata_flag.wait()
             if not self.queue_from_yolo.empty():
                 data = self.queue_from_yolo.get()
-                print(data)
                 for i in range(len(data)):
-                    if data[i]["ID"] in self.enemy_team_ids:
-                        self.referee_info.info_dict[data[i]["ID"]] = data[i]["position"]
-            # print(self.referee_info.info_dict)
+                    self.referee_info.info_dict[data[i]["ID"]] = data[i]["position"]
             self.update_txdata_flag.clear()
 
     def tx_task(self):
@@ -259,6 +258,7 @@ def print_bytes(data, queue):
     )
     # print("Bytes: " + hex_str_with_spaces)
     send_console("Bytes: " + hex_str_with_spaces, queue)
+
 
 def send_console(data, queue):
     if queue is not None:

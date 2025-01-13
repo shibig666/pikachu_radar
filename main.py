@@ -10,6 +10,7 @@ import time
 import multiprocessing as mp
 
 from radar.serial.myserial import SerialPort
+from radar.types import get_armor_type
 
 
 # 实例化串口对象
@@ -160,7 +161,7 @@ class PlayerMainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
                 if car.id == "-1":
                     continue
                 send_data.append({
-                    "ID": car.id,
+                    "ID": get_armor_type(car.id),
                     "position": car.xy_in_map,
                 })
             self.queues[0].put(send_data)
