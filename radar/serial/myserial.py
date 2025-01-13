@@ -259,7 +259,7 @@ def print_bytes(data, queue):
         hex_str[i: i + 2] for i in range(0, len(hex_str), 2)
     )
     # print("Bytes: " + hex_str_with_spaces)
-    send_console("Bytes: " + hex_str_with_spaces, queue)
+    send_console("Send-> " + hex_str_with_spaces, queue)
 
 
 def send_console(data, queue):

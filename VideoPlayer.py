@@ -1,8 +1,7 @@
-import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QTableWidgetItem, QTableWidget
+# 播放器功能实现
+from PyQt6.QtWidgets import QMainWindow, QMessageBox
 from PyQt6.QtGui import QImage, QPixmap, QStandardItemModel, QStandardItem
 from PyQt6.QtCore import QTimer
-from ui.RadarChoiceWidget import *
 from ui.RadarPlayerMainWindow import *
 from radar.detector import Detector
 import cv2
@@ -12,19 +11,29 @@ import multiprocessing as mp
 from radar.serial.myserial import SerialPort
 from radar.types import get_armor_type
 
+
 class PlayerMainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setupUi(self)
-        self.video_file = None
-        self.detector = None
-        self.first_image = None
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.update_frame)
-        self.console_timer = QTimer()
+        self.item_model = None
+        self.current_frame = None  # 当前帧
+        self.frame_count = None  # 总帧数
+        self.fps = None  # 帧率
+        self.event = None  # 串口事件
+        self.queues = None  # 串口队列
+        self.cap = None  # 视频捕获
+        self.use_serial = None  # 是否使用串口
+        self.use_tensorrt = None  # 是否使用tensorRT
+        self.setupUi(self)  # 初始化UI
+        self.video_file = None  # 视频文件
+        self.detector = None  # 检测器对象
+        self.first_image = None  # 第一帧图像
+        self.timer = QTimer()  # 播放视频定时器
+        self.timer.timeout.connect(self.update_frame)   
+        self.console_timer = QTimer()   # 串口终端定时器
         self.console_timer.timeout.connect(self.update_console)
-        self.init_table()
-        self.paused = False
+        self.init_table()   # 初始化表格
+        self.paused = False # 是否暂停
         self.NextButton.clicked.connect(self.next_frame)
         self.PauseButton.clicked.connect(self.toggle_pause)
         self.horizontalSlider.valueChanged.connect(self.update_video_position)
@@ -46,8 +55,6 @@ class PlayerMainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
         self.use_serial = use_serial
         self.video_file = video_file
         self.cap = self.open_video(video_file)
-        self.queues = [mp.Queue(), mp.Queue()]
-        self.event = mp.Event()
         if not self.cap:
             self.close()
             return
@@ -61,6 +68,8 @@ class PlayerMainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
             self.close()
             return
         if use_serial:
+            self.queues = [mp.Queue(), mp.Queue()]
+            self.event = mp.Event()
             self.console_timer.start(10)
             sp = SerialPort("COM1", "R", self.queues, self.event)
             serial_process = mp.Process(target=sp.serial_task())
@@ -70,11 +79,11 @@ class PlayerMainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
 
     def init_table(self):
         # 创建标准项模型
-        self.model = QStandardItemModel(self)
-        self.model.setHorizontalHeaderLabels(["ID", "Type", "Center X", "Center Y", "Map X", "Map Y"])
+        self.item_model = QStandardItemModel(self)
+        self.item_model.setHorizontalHeaderLabels(["ID", "Type", "Center X", "Center Y", "Map X", "Map Y"])
 
         # 设置表格模型
-        self.CarTableView.setModel(self.model)
+        self.CarTableView.setModel(self.item_model)
         self.CarTableView.verticalHeader().setVisible(False)  # 隐藏行号
         # 设置每列的固定宽度
         self.CarTableView.setColumnWidth(0, 100)
@@ -138,10 +147,10 @@ class PlayerMainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
             self.event.set()
 
     def update_table(self):
-        self.model.removeRows(0, self.model.rowCount())
+        self.item_model.removeRows(0, self.item_model.rowCount())
         cars = sorted(self.detector.cars, key=lambda x: x.id)
         for i, car in enumerate(cars):
-            self.model.appendRow([
+            self.item_model.appendRow([
                 QStandardItem(str(car.id)),
                 QStandardItem(car.type),
                 QStandardItem(str(car.center[0])),

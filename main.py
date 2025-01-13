@@ -1,21 +1,7 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QTableWidgetItem, QTableWidget
-from PyQt6.QtGui import QImage, QPixmap, QStandardItemModel, QStandardItem
-from PyQt6.QtCore import QTimer
+from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
 from ui.RadarChoiceWidget import *
-from ui.RadarPlayerMainWindow import *
-from radar.detector import Detector
-import cv2
-import time
-import multiprocessing as mp
-
-from radar.serial.myserial import SerialPort
-from radar.types import get_armor_type
 from VideoPlayer import PlayerMainWindow
-
-
-# 实例化串口对象
-# sp = SerialPort(list_available_ports())
 
 
 class ChoiceWidget(QMainWindow, Ui_RadarChoiceWidget):
