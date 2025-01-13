@@ -156,7 +156,7 @@ class Map:
         image = self.map_image.copy()
         for car in cars:
             if car.xy_in_map is not None:
-                text=f"ID:{car.id} {car.type}"
+                text=f"{car.id}" if car.id != "-1" else ""
                 if car.type == "red":
                     color = (0, 0, 255)
                 elif car.type == "blue":
@@ -164,7 +164,7 @@ class Map:
                 else:
                     color = (0, 255, 0)
                 cv2.circle(image, car.xy_in_map, 20, color, -1)
-                cv2.putText(image, text, car.xy_in_map, cv2.FONT_HERSHEY_SIMPLEX, 5, color, 5)
+                cv2.putText(image, text, car.xy_in_map, cv2.FONT_HERSHEY_SIMPLEX, 5, color, 8)
         return image
 
 
