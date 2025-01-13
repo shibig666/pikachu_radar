@@ -7,9 +7,9 @@ from ui.RadarPlayerMainWindow import *
 from radar.detector import Detector
 import cv2
 import time
-import threading
+
 # import multiprocessing as mp
-# rom myserial import SerialPort
+# from myserial import SerialPort
 # 实例化串口对象
 # sp = SerialPort(list_available_ports())
 
