@@ -12,6 +12,8 @@ import threading
 # rom myserial import SerialPort
 # 实例化串口对象
 # sp = SerialPort(list_available_ports())
+
+
 class ChoiceWidget(QMainWindow, Ui_RadarChoiceWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -26,7 +28,8 @@ class ChoiceWidget(QMainWindow, Ui_RadarChoiceWidget):
 
         if file_dialog.exec():
             selected_file = file_dialog.selectedFiles()[0]
-            use_tensorrt = self.checkBox.isChecked()
+            use_tensorrt = self.checkBoxTensorrt.isChecked()
+            use_serial = self.checkBoxSerial.isChecked()  # 串口功能暂未开放
             self.close()
             main_window.show()
             main_window.init(selected_file, use_tensorrt)
@@ -46,14 +49,9 @@ class MainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_frame)
         self.init_table()
-
-        self.paused = False  # Track whether the video is paused
-
-        # Connect button actions
+        self.paused = False
         self.NextButton.clicked.connect(self.next_frame)
         self.PauseButton.clicked.connect(self.toggle_pause)
-
-        # Connect slider value change to video position
         self.horizontalSlider.valueChanged.connect(self.update_video_position)
         self.time = 0
 

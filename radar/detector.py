@@ -58,6 +58,7 @@ class Detector:
                                                         conf=self.armor_conf,
                                                         half=self.armor_half,
                                                         device=self.device,
+                                                        imgsz=320,
                                                         verbose=False)[0]
             armors_xyxy = result_armors.boxes.xyxy
             armors_cls = result_armors.boxes.cls
