@@ -27,10 +27,11 @@ class ChoiceWidget(QMainWindow, Ui_RadarChoiceWidget):
             selected_file = file_dialog.selectedFiles()[0]
             global video_file
             video_file = selected_file
+            self.close()
             main_window.show()
             main_window.init(video_file)
             main_window.start_video()
-            self.close()
+
 
 
     def select_camera(self):
