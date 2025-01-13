@@ -93,14 +93,14 @@ class SerialPort:
                 message += bytes([0x05, 0x03])
                 for id in self.enemy_team_ids:
                     if id not in self.referee_info.info_dict:
-                        self.referee_info.info_dict[id] = {"position": (0, 0)}
+                        self.referee_info.info_dict[id] = (0,0)
                     # print(str(id)+str(self.referee_info.info_dict[id]))
                     message += struct.pack(
                         "<HH",
-                        self.referee_info.info_dict[id]["position"][0],
-                        self.referee_info.info_dict[id]["position"][1],
+                        self.referee_info.info_dict[id][0],
+                        self.referee_info.info_dict[id][1],
                     )
-                    self.referee_info.info_dict[id]["position"] = (0, 0)
+                    self.referee_info.info_dict[id] = (0, 0)
                 message += append_crc16(message)
                 self.SEQ += 1
                 if self.SEQ > 0xFF:
@@ -165,17 +165,11 @@ class SerialPort:
             self.update_txdata_flag.wait()
             if not self.queue_from_yolo.empty():
                 data = self.queue_from_yolo.get()
-                # print(data)
+                print(data)
                 for i in range(len(data)):
-                    try:
-                        if data[i]["ID"] in self.enemy_team_ids:
-                            self.referee_info.info_dict[data[i]["ID"]]["position"] = data[i]["position"]
-                    except KeyError:
-                        print("未找到ID"+data[i]["ID"])
-            # if not self.queue_from_rx.empty():
-            #     data = self.queue_from_rx.get()
-            #     for id in enemy_team_ids:
-            #         self.referee_info.info_dict[id]["position"] = data[id]
+                    if data[i]["ID"] in self.enemy_team_ids:
+                        self.referee_info.info_dict[data[i]["ID"]] = data[i]["position"]
+            # print(self.referee_info.info_dict)
             self.update_txdata_flag.clear()
 
     def tx_task(self):

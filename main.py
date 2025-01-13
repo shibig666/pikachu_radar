@@ -75,7 +75,7 @@ class PlayerMainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
         self.use_serial = use_serial
         self.video_file = video_file
         self.cap = self.open_video(video_file)
-        self.queues = [mp.Queue() for _ in range(2)]
+        self.queues = [mp.Queue(), mp.Queue()]
         self.event = mp.Event()
         if not self.cap:
             self.close()
@@ -90,7 +90,7 @@ class PlayerMainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
             self.close()
             return
         if use_serial:
-            self.console_timer.start(100)
+            self.console_timer.start(10)
             sp = SerialPort("COM1", "R", self.queues, self.event)
             serial_process = mp.Process(target=sp.serial_task())
             serial_process.start()
@@ -155,7 +155,7 @@ class PlayerMainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
 
         # 串口发送
         if self.use_serial:
-            send_data=[]
+            send_data = []
             for car in self.detector.cars:
                 if car.id == "-1":
                     continue
