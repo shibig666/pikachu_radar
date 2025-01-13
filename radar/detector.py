@@ -1,6 +1,8 @@
 from radar import types
 from radar.transform import Transformer
 from ultralytics import YOLO
+import torch
+import os
 import json
 import logging
 import numpy as np
@@ -8,9 +10,11 @@ import numpy as np
 
 # 装甲板检测器
 class Detector:
-    def __init__(self, car_path, armor_path, map_path, first_image,
+    def __init__(self, model_path, map_path, first_image,
                  car_iou=0.7, car_conf=0.25, car_half=False,
-                 armor_iou=0.5, armor_conf=0.25, armor_half=False):
+                 armor_iou=0.5, armor_conf=0.25, armor_half=False, tensorRT=False):
+        self.tensorRT = tensorRT if torch.cuda.is_available() else False
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.armor_classes = ['B1', 'B2', 'B3', 'B4', 'B5', 'B7', 'R1', 'R2', 'R3', 'R4', 'R5', 'R7']
         # 预测参数
         self.car_iou = car_iou
@@ -20,8 +24,12 @@ class Detector:
         self.armor_conf = armor_conf
         self.armor_half = armor_half
         # 模型载入
-        self.car_detector = YOLO(car_path)
-        self.armor_detector = YOLO(armor_path)
+        if tensorRT:
+            self.car_detector = YOLO(os.path.join(model_path, 'car.engine'))
+            self.armor_detector = YOLO(os.path.join(model_path, 'armor.engine'))
+        else:
+            self.car_detector = YOLO(os.path.join(model_path, 'car.pt'))
+            self.armor_detector = YOLO(os.path.join(model_path, 'armor.pt'))
         # 识别到的机器人
         self.cars = []
         # 载入地图
@@ -37,7 +45,8 @@ class Detector:
         result_cars = self.car_detector.predict(image,
                                                 iou=self.car_iou,
                                                 conf=self.car_conf,
-                                                half=self.car_half)[0]
+                                                half=self.car_half,
+                                                device=self.device)[0]
         cars_xyxy = result_cars.boxes.xyxy
         for i in range(len(cars_xyxy)):
             xyxy = list(map(int, cars_xyxy[i].cpu().tolist()))
@@ -46,7 +55,8 @@ class Detector:
             result_armors = self.armor_detector.predict(car.image,
                                                         iou=self.armor_iou,
                                                         conf=self.armor_conf,
-                                                        half=self.armor_half)[0]
+                                                        half=self.armor_half,
+                                                        device=self.device)[0]
             armors_xyxy = result_armors.boxes.xyxy
             armors_cls = result_armors.boxes.cls
             for armor_xyxy, armor_cls in zip(armors_xyxy, armors_cls):

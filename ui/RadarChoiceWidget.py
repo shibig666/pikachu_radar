@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'choice.ui'
+# Form implementation generated from reading ui file 'RadarChoiceWidget.ui'
 #
 # Created by: PyQt6 UI code generator 6.4.2
 #
@@ -19,6 +19,9 @@ class Ui_RadarChoiceWidget(object):
         self.CameraButton = QtWidgets.QPushButton(parent=RadarChoiceWidget)
         self.CameraButton.setGeometry(QtCore.QRect(230, 40, 101, 51))
         self.CameraButton.setObjectName("CameraButton")
+        self.checkBox = QtWidgets.QCheckBox(parent=RadarChoiceWidget)
+        self.checkBox.setGeometry(QtCore.QRect(150, 100, 111, 19))
+        self.checkBox.setObjectName("checkBox")
 
         self.retranslateUi(RadarChoiceWidget)
         QtCore.QMetaObject.connectSlotsByName(RadarChoiceWidget)
@@ -28,3 +31,4 @@ class Ui_RadarChoiceWidget(object):
         RadarChoiceWidget.setWindowTitle(_translate("RadarChoiceWidget", "Radar"))
         self.VideoButton.setText(_translate("RadarChoiceWidget", "视频"))
         self.CameraButton.setText(_translate("RadarChoiceWidget", "摄像头"))
+        self.checkBox.setText(_translate("RadarChoiceWidget", "使用TensorRT"))

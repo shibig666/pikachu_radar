@@ -39,6 +39,19 @@
     <string>摄像头</string>
    </property>
   </widget>
+  <widget class="QCheckBox" name="checkBox">
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>100</y>
+     <width>111</width>
+     <height>19</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>使用TensorRT</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>

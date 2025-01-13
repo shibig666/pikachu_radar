@@ -8,8 +8,6 @@ from radar.detector import Detector
 import cv2
 import threading
 
-video_file = None
-
 
 class ChoiceWidget(QMainWindow, Ui_RadarChoiceWidget):
     def __init__(self, parent=None):
@@ -25,11 +23,10 @@ class ChoiceWidget(QMainWindow, Ui_RadarChoiceWidget):
 
         if file_dialog.exec():
             selected_file = file_dialog.selectedFiles()[0]
-            global video_file
-            video_file = selected_file
+            use_tensorrt = self.checkBox.isChecked()
             self.close()
             main_window.show()
-            main_window.init(video_file)
+            main_window.init(selected_file, use_tensorrt)
             main_window.start_video()
 
 
@@ -69,7 +66,8 @@ class MainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
             return False
         return cap
 
-    def init(self, video_file):
+    def init(self, video_file,use_tensorrt):
+        self.use_tensorrt=use_tensorrt
         self.video_file = video_file
         self.cap = self.open_video(video_file)
         if not self.cap:
@@ -85,7 +83,7 @@ class MainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
             self.close()
             return
         self.first_image = frame
-        self.detector = Detector("weights/car.pt", "weights/armor.pt", "interface/map.png", self.first_image)
+        self.detector = Detector("weights", "interface/map.png", self.first_image, tensorRT=self.use_tensorrt)
 
     def init_table(self):
         # 创建标准项模型
