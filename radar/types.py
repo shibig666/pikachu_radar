@@ -80,7 +80,7 @@ class Car:
         else:
             color = (0, 255, 0)
         cv2.rectangle(image, (self.box[0], self.box[1]), (self.box[2], self.box[3]), color, 2)
-        cv2.putText(image, f"ID:{self.id}", (self.box[0], self.box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+        cv2.putText(image, f"ID:{self.id}", (self.box[0], self.box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 4)
         cv2.circle(image, self.center, 5, color, -1)
         for armor in self.armors:
             cv2.rectangle(image, (self.box[0] + armor.box[0], self.box[1] + armor.box[1]),

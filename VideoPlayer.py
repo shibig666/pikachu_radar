@@ -1,6 +1,6 @@
 # 播放器功能实现
 from PyQt6.QtWidgets import QMainWindow, QMessageBox
-from PyQt6.QtGui import QImage, QPixmap, QStandardItemModel, QStandardItem
+from PyQt6.QtGui import QImage, QPixmap, QStandardItemModel, QStandardItem, QColor
 from PyQt6.QtCore import QTimer
 from ui.RadarPlayerMainWindow import *
 from radar.detector import Detector
@@ -15,6 +15,7 @@ from radar.types import get_armor_type
 class PlayerMainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.enemy_color = None
         self.item_model = None
         self.current_frame = None  # 当前帧
         self.frame_count = None  # 总帧数
@@ -50,11 +51,17 @@ class PlayerMainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
             return False
         return cap
 
-    def init(self, video_file, use_tensorrt, use_serial):
+    def init(self, video_file, use_tensorrt, use_serial, enemy_color):
         self.use_tensorrt = use_tensorrt
         self.use_serial = use_serial
         self.video_file = video_file
+        self.enemy_color = enemy_color
         self.cap = self.open_video(video_file)
+        self.enemyColorLabel.setText(f"敌方颜色: {enemy_color}")
+        palette=self.enemyColorLabel.palette()
+        palette.setColor(self.enemyColorLabel.foregroundRole(), QColor("red") if enemy_color == "R" else QColor("blue"))
+        self.enemyColorLabel.setPalette(palette)
+
         if not self.cap:
             self.close()
             return
@@ -71,7 +78,7 @@ class PlayerMainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
             self.queues = [mp.Queue(), mp.Queue()]
             self.event = mp.Event()
             self.console_timer.start(10)
-            sp = SerialPort("COM1", "R", self.queues, self.event)
+            sp = SerialPort("COM1", enemy_color, self.queues, self.event)
             serial_process = mp.Process(target=sp.serial_task())
             serial_process.start()
         self.first_image = frame

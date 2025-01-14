@@ -13,13 +13,13 @@
   <property name="windowTitle">
    <string>Radar</string>
   </property>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>27</x>
-     <y>14</y>
+     <x>30</x>
+     <y>20</y>
      <width>191</width>
-     <height>101</height>
+     <height>71</height>
     </rect>
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout">
@@ -39,7 +39,7 @@
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>261</x>
@@ -64,6 +64,29 @@
      </widget>
     </item>
    </layout>
+  </widget>
+  <widget class="QSplitter" name="splitter">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>100</y>
+     <width>190</width>
+     <height>19</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+   <widget class="QRadioButton" name="radioButtonRed">
+    <property name="text">
+     <string>红方敌人</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="radioButtonBlue">
+    <property name="text">
+     <string>蓝方敌人</string>
+    </property>
+   </widget>
   </widget>
  </widget>
  <resources/>

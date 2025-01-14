@@ -17,12 +17,13 @@ class ChoiceWidget(QMainWindow, Ui_RadarChoiceWidget):
         file_dialog.setNameFilter('视频文件 (*.mp4 *.avi *.mkv *.mov *.flv)')
 
         if file_dialog.exec():
-            selected_file = file_dialog.selectedFiles()[0]
-            use_tensorrt = self.checkBoxTensorrt.isChecked()
-            use_serial = self.checkBoxSerial.isChecked()
+            selected_file = file_dialog.selectedFiles()[0]  # 选择的文件
+            use_tensorrt = self.checkBoxTensorrt.isChecked()  # 是否使用tensorRT
+            use_serial = self.checkBoxSerial.isChecked()  # 是否使用串口
+            enemy_color = "R" if self.radioButtonRed.isChecked() else "B"  # 敌方颜色
             self.close()
             player_main_window.show()
-            player_main_window.init(selected_file, use_tensorrt, use_serial)
+            player_main_window.init(selected_file, use_tensorrt, use_serial, enemy_color)
             player_main_window.start_video()
 
     def select_camera(self):
