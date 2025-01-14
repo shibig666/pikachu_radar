@@ -75,7 +75,8 @@ class PlayerMainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
             serial_process = mp.Process(target=sp.serial_task())
             serial_process.start()
         self.first_image = frame
-        self.detector = Detector("weights", "interface/map.png", self.first_image, tensorRT=self.use_tensorrt)
+        self.detector = Detector("weights", "interface/map.png", self.first_image, config_path="config/predict.json",
+                                 tensorRT=self.use_tensorrt)
 
     def init_table(self):
         # 创建标准项模型

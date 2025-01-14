@@ -3,28 +3,28 @@ from radar.transform import Transformer
 from ultralytics import YOLO
 import torch
 import os
+import json
 
 
 # 装甲板检测器
 class Detector:
-    def __init__(self, model_path, map_path, first_image,
-                 car_iou=0.7, car_conf=0.25, car_half=False,
-                 armor_iou=0.5, armor_conf=0.25, armor_half=False, tensorRT=False):
+    def __init__(self, model_path, map_path, first_image, config_path, tensorRT=False):
         self.tensorRT = tensorRT if torch.cuda.is_available() else False
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.armor_classes = ['B1', 'B2', 'B3', 'B4', 'B5', 'B7', 'R1', 'R2', 'R3', 'R4', 'R5', 'R7']
         # 预测参数
-        self.car_iou = car_iou
-        self.car_conf = car_conf
-        self.car_half = car_half
-        self.armor_iou = armor_iou
-        self.armor_conf = armor_conf
-        self.armor_half = armor_half
+        config = json.load(open(config_path))
+        self.car_iou = config["data"]["car"]["iou"]
+        self.car_conf = config["data"]["car"]["conf"]
+        self.car_half = config["data"]["car"]["half"]
+        self.armor_iou = config["data"]["armor"]["iou"]
+        self.armor_conf = config["data"]["armor"]["conf"]
+        self.armor_half = config["data"]["armor"]["half"]
         self.data_queue = None
         # 模型载入
         if tensorRT:
-            self.car_detector = YOLO(os.path.join(model_path, 'car.engine'))
-            self.armor_detector = YOLO(os.path.join(model_path, 'armor.engine'))
+            self.car_detector = YOLO(os.path.join(model_path, 'car.engine'),task="detect")
+            self.armor_detector = YOLO(os.path.join(model_path, 'armor.engine'),task="detect")
         else:
             self.car_detector = YOLO(os.path.join(model_path, 'car.pt'))
             self.armor_detector = YOLO(os.path.join(model_path, 'armor.pt'))

@@ -1,0 +1,15 @@
+{
+    "type": "predict",
+    "data": {
+        "car": {
+            "iou": 0.7,
+            "conf": 0.25,
+            "half": false
+        },
+        "armor": {
+            "iou": 0.5,
+            "conf": 0.25,
+            "half": false
+        }
+    }
+}
