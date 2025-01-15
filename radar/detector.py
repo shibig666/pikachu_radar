@@ -11,8 +11,7 @@ from PyQt6.QtWidgets import QMessageBox
 class Detector:
     def __init__(self, model_path, map_path, first_image, config_path, tensorRT=False):
         if tensorRT and not torch.cuda.is_available():
-            QMessageBox.warning(None, "警告", "TensorRT需要CUDA支持")
-            return
+            QMessageBox.warning(None, "警告", "TensorRT需要CUDA支持,已关闭TensorRT")
         self.tensorRT = tensorRT if torch.cuda.is_available() else False
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.armor_classes = ['B1', 'B2', 'B3', 'B4', 'B5', 'B7', 'R1', 'R2', 'R3', 'R4', 'R5', 'R7']
