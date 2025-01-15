@@ -7,7 +7,6 @@ import json
 from PyQt6.QtWidgets import QMessageBox
 
 
-
 # 装甲板检测器
 class Detector:
     def __init__(self, model_path, map_path, first_image, config_path, tensorRT=False):
@@ -28,8 +27,8 @@ class Detector:
         self.data_queue = None
         # 模型载入
         if tensorRT:
-            self.car_detector = YOLO(os.path.join(model_path, 'car.engine'),task="detect")
-            self.armor_detector = YOLO(os.path.join(model_path, 'armor.engine'),task="detect")
+            self.car_detector = YOLO(os.path.join(model_path, 'car.engine'), task="detect")
+            self.armor_detector = YOLO(os.path.join(model_path, 'armor.engine'), task="detect")
         else:
             self.car_detector = YOLO(os.path.join(model_path, 'car.pt'))
             self.armor_detector = YOLO(os.path.join(model_path, 'armor.pt'))
