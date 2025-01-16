@@ -35,7 +35,7 @@ class Detector:
         self.cars = []
         # 载入地图
         self.Transformer = Transformer(map_path, config_path="config/transform.json",
-                                       first_image=first_image)
+                                       first_image=first_image,scale=[0.5, 0.3])
         self.result_map_image = None
 
     # 检测

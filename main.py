@@ -20,6 +20,9 @@ class ChoiceWidget(QMainWindow, Ui_RadarChoiceWidget):
             selected_file = file_dialog.selectedFiles()[0]  # 选择的文件
             use_tensorrt = self.checkBoxTensorrt.isChecked()  # 是否使用tensorRT
             use_serial = self.checkBoxSerial.isChecked()  # 是否使用串口
+            if self.radioButtonRed.isChecked() == self.radioButtonBlue.isChecked():
+                QMessageBox.warning(self, "警告", "请选择敌方颜色")
+                return
             enemy_color = "R" if self.radioButtonRed.isChecked() else "B"  # 敌方颜色
             self.close()
             player_main_window.show()

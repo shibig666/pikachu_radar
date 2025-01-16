@@ -105,9 +105,11 @@ class Map:
         self.M = None
 
     # >>>>>>>>>>>选取点<<<<<<<<<<
-    def init_map(self, src_image, scale=0.5):
-        self.select_src_point(src_image, scale)
-        self.select_dst_point(scale)
+    def init_map(self, src_image, scale=None):
+        if scale is None:
+            scale = [0.5, 0.3]  # video,map
+        self.select_src_point(src_image, scale[0])
+        self.select_dst_point(scale[1])
 
     def _resize_image(self, image, scale):
         return cv2.resize(image, (0, 0), fx=scale, fy=scale)
