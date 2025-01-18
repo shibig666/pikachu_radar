@@ -4,14 +4,17 @@ from ultralytics import YOLO
 import torch
 import os
 import json
-from PyQt6.QtWidgets import QMessageBox
 
 
 # 装甲板检测器
 class Detector:
     def __init__(self, model_path, map_path, first_image, config_path, tensorRT=False):
         if tensorRT and not torch.cuda.is_available():
-            QMessageBox.warning(None, "警告", "TensorRT需要CUDA支持,已关闭TensorRT")
+            try:
+                from PyQt6.QtWidgets import QMessageBox
+                QMessageBox.warning(None, "警告", "TensorRT需要CUDA支持,已关闭TensorRT")
+            except ImportError:
+                print("TensorRT需要CUDA支持,已关闭TensorRT")
         self.tensorRT = tensorRT if torch.cuda.is_available() else False
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.armor_classes = ['B1', 'B2', 'B3', 'B4', 'B5', 'B7', 'R1', 'R2', 'R3', 'R4', 'R5', 'R7']
@@ -35,7 +38,7 @@ class Detector:
         self.cars = []
         # 载入地图
         self.Transformer = Transformer(map_path, config_path="config/transform.json",
-                                       first_image=first_image,scale=[0.5, 0.3])
+                                       first_image=first_image, scale=[0.5, 0.3])
         self.result_map_image = None
 
     # 检测
