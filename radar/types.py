@@ -110,6 +110,7 @@ class Map:
             scale = [0.5, 0.3]  # video,map
         self.select_src_point(src_image, scale[0])
         self.select_dst_point(scale[1])
+        cv2.destroyAllWindows()
 
     def _resize_image(self, image, scale):
         return cv2.resize(image, (0, 0), fx=scale, fy=scale)
@@ -140,7 +141,7 @@ class Map:
                 break
 
         print(f"Selected points: {points}")
-        cv2.destroyAllWindows()
+        # cv2.destroyAllWindows()
 
     def select_src_point(self, src_image, scale=0.5):
         self._select_points(src_image, self.src_points, scale, window_name="Select Source Points")

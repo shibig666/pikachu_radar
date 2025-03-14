@@ -3,7 +3,7 @@ import cv2
 import time
 import multiprocessing as mp
 from PyQt6.QtWidgets import QMainWindow, QApplication, QMessageBox
-from PyQt6.QtGui import QImage, QPixmap, QColor
+from PyQt6.QtGui import QImage, QPixmap, QColor, QStandardItem, QStandardItemModel
 from PyQt6.QtCore import QTimer
 from ui.RadarPlayerMainWindow import Ui_RadarPlayerMainWindow
 from radar.detector import Detector
@@ -38,6 +38,7 @@ class CameraMainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
         self.use_tensorrt = use_tensorrt
         self.use_serial = use_serial
         self.enemy_color = enemy_color
+        self.init_table()  # 初始化表格
 
         # 设置敌方颜色
         self.enemyColorLabel.setText(f"敌方颜色: {enemy_color}")
@@ -46,15 +47,16 @@ class CameraMainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
         self.enemyColorLabel.setPalette(palette)
 
         # 打开 USB 端相机
-        self.cap = cv2.VideoCapture(1)  # 0 表示默认相机
+        self.cap = cv2.VideoCapture(6)  # 0 表示默认相机
         if not self.cap.isOpened():
             QMessageBox.warning(self, "警告", "无法打开相机")
             return
 
         # 获取 FPS
         self.fps = self.cap.get(cv2.CAP_PROP_FPS)
+        print("fps:", self.fps)
         if self.fps == 0:
-            self.fps = 30  # 设置默认值
+            self.fps = 60  # 设置默认值
 
         # 读取第一帧作为初始化
         ret, frame = self.cap.read()
@@ -62,14 +64,15 @@ class CameraMainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
             QMessageBox.warning(self, "警告", "无法读取相机画面")
             self.close()
             return
+        print(frame.shape)
 
         # 如果使用串口通信
         if use_serial:
             self.queues = [mp.Queue(), mp.Queue()]
             self.event = mp.Event()
             self.console_timer.start(10)
-            sp = SerialPort("COM1", enemy_color, self.queues, self.event)
-            serial_process = mp.Process(target=sp.serial_task)
+            sp = SerialPort("COM2", enemy_color, self.queues, self.event)
+            serial_process = mp.Process(target=sp.serial_task())
             serial_process.start()
 
         # 初始化检测器
@@ -81,6 +84,35 @@ class CameraMainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
         if self.cap is None:
             return
         self.timer.start(int(1000 / self.fps))
+
+    def update_table(self):
+        self.item_model.removeRows(0, self.item_model.rowCount())
+        cars = sorted(self.detector.cars, key=lambda x: x.id)
+        for i, car in enumerate(cars):
+            self.item_model.appendRow([
+                QStandardItem(str(car.id)),
+                QStandardItem(car.type),
+                QStandardItem(str(car.center[0])),
+                QStandardItem(str(car.center[1])),
+                QStandardItem(str(car.xy_in_map[0])),
+                QStandardItem(str(car.xy_in_map[1])),
+            ])
+
+    def init_table(self):
+        # 创建标准项模型
+        self.item_model = QStandardItemModel(self)
+        self.item_model.setHorizontalHeaderLabels(["ID", "Type", "Center X", "Center Y", "Map X", "Map Y"])
+
+        # 设置表格模型
+        self.CarTableView.setModel(self.item_model)
+        self.CarTableView.verticalHeader().setVisible(False)  # 隐藏行号
+        # 设置每列的固定宽度
+        self.CarTableView.setColumnWidth(0, 100)
+        self.CarTableView.setColumnWidth(1, 150)
+        self.CarTableView.setColumnWidth(2, 120)
+        self.CarTableView.setColumnWidth(3, 120)
+        self.CarTableView.setColumnWidth(4, 150)
+        self.CarTableView.setColumnWidth(5, 150)
 
     def update_console(self):
         """更新串口数据"""
@@ -113,6 +145,7 @@ class CameraMainWindow(QMainWindow, Ui_RadarPlayerMainWindow):
         self.fpsLabel.setText(f"FPS: {fps}")
         self.MapLabel.setPixmap(QPixmap.fromImage(result_map_qimg))
         self.VideoLabel.setPixmap(QPixmap.fromImage(result_img_qimg))
+        self.update_table()
 
         # 串口发送数据
         if self.use_serial:
