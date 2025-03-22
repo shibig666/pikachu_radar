@@ -1,8 +1,10 @@
 import sys
+
 from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
-from ui.RadarChoiceWidget import Ui_RadarChoiceWidget
-from VideoPlayer import PlayerMainWindow
+
 from CameraPlayer import CameraMainWindow  # 引入摄像头播放窗口
+from VideoPlayer import PlayerMainWindow
+from ui.RadarChoiceWidget import Ui_RadarChoiceWidget
 
 
 class ChoiceWidget(QMainWindow, Ui_RadarChoiceWidget):
